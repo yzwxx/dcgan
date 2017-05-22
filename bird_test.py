@@ -38,6 +38,7 @@ def get_data_files(image_dir):
 
 
 if __name__ == '__main__':
+	cur_dir = os.getcwd()
 	image_dir = os.path.join(cur_dir,"data",FLAGS.dataset)
 	all_files = get_data_files(image_dir)
 	print(all_files[:10])
