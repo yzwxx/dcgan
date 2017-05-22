@@ -22,16 +22,16 @@ Usage : see README.md
 """
 
 flags = tf.app.flags
-flags.DEFINE_integer("epoch", 20, "Epoch to train [25]")
+flags.DEFINE_integer("epoch", 80, "Epoch to train [80]")
 flags.DEFINE_float("learning_rate", 0.0002, "Learning rate of for adam [0.0002]")
 flags.DEFINE_float("beta1", 0.5, "Momentum term of adam [0.5]")
 flags.DEFINE_integer("train_size", np.inf, "The size of train images [np.inf]")
 flags.DEFINE_integer("batch_size", 64, "The number of batch images [64]")
-flags.DEFINE_integer("image_size", 200, "The size of image to use (will be center cropped) [108]")
+flags.DEFINE_integer("image_size", 250, "The size of image to use (will be center cropped) [108]")
 flags.DEFINE_integer("output_size", 64, "The size of the output images to produce [64]")
 flags.DEFINE_integer("sample_size", 64, "The number of sample images [64]")
 flags.DEFINE_integer("c_dim", 3, "Dimension of image color. [3]")
-flags.DEFINE_integer("sample_step", 500, "The interval of generating sample. [500]")
+flags.DEFINE_integer("sample_step", 300, "The interval of generating sample. [300]")
 flags.DEFINE_integer("save_step", 500, "The interval of saveing checkpoints. [500]")
 flags.DEFINE_string("dataset", "CUB_200_2011", "The name of dataset")
 flags.DEFINE_string("checkpoint_dir", "checkpoint", "Directory name to save the checkpoints [checkpoint]")
@@ -53,7 +53,7 @@ def main(_):
     # random noise vector
     z_dim = 100
 
-    with tf.device("/gpu:3"):
+    with tf.device("/gpu:0"):
         ##========================= DEFINE MODEL ===========================##
         z = tf.placeholder(tf.float32, [FLAGS.batch_size, z_dim], name='z_noise')
         # [64,64,64,3]
@@ -193,4 +193,7 @@ def main(_):
 
 
 if __name__ == '__main__':
+    start_time = time.time()
     tf.app.run()
+    end_time = time.time()
+    print("The processing time of program is : {:.2f}mins".format((end_time-start_time)/60.0))
