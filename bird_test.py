@@ -15,6 +15,8 @@ all those bad images:
 /home/hadoop/Downloads/CUB_200_2011/CUB_200_2011/images/093.Clark_Nutcracker/Clark_Nutcracker_0020_85099.jpg
 '''
 
+dataset_name = "CUB_200_2011"
+
 def get_data_files(image_dir):
 	# cur_dir = os.getcwd()
 	# image_dir = os.path.join(cur_dir,"data/CUB_200_2011")
@@ -39,6 +41,6 @@ def get_data_files(image_dir):
 
 if __name__ == '__main__':
 	cur_dir = os.getcwd()
-	image_dir = os.path.join(cur_dir,"data",FLAGS.dataset)
+	image_dir = os.path.join(cur_dir,"data",dataset_name)
 	all_files = get_data_files(image_dir)
 	print(all_files[:10])
