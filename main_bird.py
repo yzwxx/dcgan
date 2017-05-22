@@ -11,6 +11,7 @@ from glob import glob
 from random import shuffle
 from model import *
 from utils import *
+from bird_test import *
 
 pp = pprint.PrettyPrinter()
 
@@ -21,18 +22,18 @@ Usage : see README.md
 """
 
 flags = tf.app.flags
-flags.DEFINE_integer("epoch", 25, "Epoch to train [25]")
+flags.DEFINE_integer("epoch", 20, "Epoch to train [25]")
 flags.DEFINE_float("learning_rate", 0.0002, "Learning rate of for adam [0.0002]")
 flags.DEFINE_float("beta1", 0.5, "Momentum term of adam [0.5]")
 flags.DEFINE_integer("train_size", np.inf, "The size of train images [np.inf]")
 flags.DEFINE_integer("batch_size", 64, "The number of batch images [64]")
-flags.DEFINE_integer("image_size", 108, "The size of image to use (will be center cropped) [108]")
+flags.DEFINE_integer("image_size", 200, "The size of image to use (will be center cropped) [108]")
 flags.DEFINE_integer("output_size", 64, "The size of the output images to produce [64]")
 flags.DEFINE_integer("sample_size", 64, "The number of sample images [64]")
 flags.DEFINE_integer("c_dim", 3, "Dimension of image color. [3]")
 flags.DEFINE_integer("sample_step", 500, "The interval of generating sample. [500]")
 flags.DEFINE_integer("save_step", 500, "The interval of saveing checkpoints. [500]")
-flags.DEFINE_string("dataset", "celebA", "The name of dataset [celebA, mnist, lsun]")
+flags.DEFINE_string("dataset", "CUB_200_2011", "The name of dataset")
 flags.DEFINE_string("checkpoint_dir", "checkpoint", "Directory name to save the checkpoints [checkpoint]")
 flags.DEFINE_string("sample_dir", "samples", "Directory name to save the image samples [samples]")
 flags.DEFINE_boolean("is_train", False, "True for training, False for testing [False]")
@@ -52,7 +53,7 @@ def main(_):
     # random noise vector
     z_dim = 100
 
-    with tf.device("/gpu:0"):
+    with tf.device("/gpu:3"):
         ##========================= DEFINE MODEL ===========================##
         z = tf.placeholder(tf.float32, [FLAGS.batch_size, z_dim], name='z_noise')
         # [64,64,64,3]
@@ -105,7 +106,14 @@ def main(_):
     net_d_name = os.path.join(save_dir, 'net_d.npz')
 
     # get the list of absolute paths of all images in dataset
-    data_files = glob(os.path.join("./data", FLAGS.dataset, "*.jpg"))
+    # data_files = glob(os.path.join("./data", FLAGS.dataset, "*.jpg"))
+    print("-----------------------------------------------------------------")
+    cur_dir = os.getcwd()
+    image_dir = os.path.join(cur_dir,"data",FLAGS.dataset)
+    print(image_dir)
+    data_files = get_data_files(image_dir)
+    print(data_files)
+    print(len(data_files))
         # sample_seed = np.random.uniform(low=-1, high=1, size=(FLAGS.sample_size, z_dim)).astype(np.float32)
 
     # generate the random noise vector Z with size of (64,100)
@@ -134,6 +142,7 @@ def main(_):
             # more image augmentation functions in http://tensorlayer.readthedocs.io/en/latest/modules/prepro.html
             batch = [get_image(batch_file, FLAGS.image_size, is_crop=FLAGS.is_crop, resize_w=FLAGS.output_size, is_grayscale = 0) for batch_file in batch_files]
             # [64,64,64,3]
+            print(len(batch))
             batch_images = np.array(batch).astype(np.float32)
                 # batch_z = np.random.uniform(low=-1, high=1, size=(FLAGS.batch_size, z_dim)).astype(np.float32)
             batch_z = np.random.normal(loc=0.0, scale=1.0, size=(FLAGS.sample_size, z_dim)).astype(np.float32)

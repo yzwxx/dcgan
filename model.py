@@ -11,6 +11,7 @@ FLAGS = flags.FLAGS
 
 def generator_simplified_api(inputs, is_train=True, reuse=False):
     image_size = 64
+    # the size of feature map using "SAME" in conv2d layer is int(math.ceil(float(size) / float(stride))), stride is 2 here
     s2, s4, s8, s16 = int(image_size/2), int(image_size/4), int(image_size/8), int(image_size/16)
     gf_dim = 64 # Dimension of gen filters in first conv layer. [64]
     c_dim = FLAGS.c_dim # n_color 3
@@ -25,7 +26,9 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
         net_in = InputLayer(inputs, name='g/in')
         net_h0 = DenseLayer(net_in, n_units=gf_dim*8*s16*s16, W_init=w_init,
                 act = tf.identity, name='g/h0/lin')
+        # net_h0.outputs._shape = (64,64*8*4*4)
         net_h0 = ReshapeLayer(net_h0, shape=[-1, s16, s16, gf_dim*8], name='g/h0/reshape')
+        # net_h0.outputs._shape = (64,4,4,512)
         net_h0 = BatchNormLayer(net_h0, act=tf.nn.relu, is_train=is_train,
                 gamma_init=gamma_init, name='g/h0/batch_norm')
 
@@ -33,19 +36,23 @@ def generator_simplified_api(inputs, is_train=True, reuse=False):
                 padding='SAME', batch_size=batch_size, act=None, W_init=w_init, name='g/h1/decon2d')
         net_h1 = BatchNormLayer(net_h1, act=tf.nn.relu, is_train=is_train,
                 gamma_init=gamma_init, name='g/h1/batch_norm')
+        # net_h1.outputs._shape = (64,8,8,256)
 
         net_h2 = DeConv2d(net_h1, gf_dim*2, (5, 5), out_size=(s4, s4), strides=(2, 2),
                 padding='SAME', batch_size=batch_size, act=None, W_init=w_init, name='g/h2/decon2d')
         net_h2 = BatchNormLayer(net_h2, act=tf.nn.relu, is_train=is_train,
                 gamma_init=gamma_init, name='g/h2/batch_norm')
+        # net_h2.outputs._shape = (64,16,16,128)
 
         net_h3 = DeConv2d(net_h2, gf_dim, (5, 5), out_size=(s2, s2), strides=(2, 2),
                 padding='SAME', batch_size=batch_size, act=None, W_init=w_init, name='g/h3/decon2d')
         net_h3 = BatchNormLayer(net_h3, act=tf.nn.relu, is_train=is_train,
                 gamma_init=gamma_init, name='g/h3/batch_norm')
+        # net_h3.outputs._shape = (64,32,32,64)
 
         net_h4 = DeConv2d(net_h3, c_dim, (5, 5), out_size=(image_size, image_size), strides=(2, 2),
                 padding='SAME', batch_size=batch_size, act=None, W_init=w_init, name='g/h4/decon2d')
+        # net_h4.outputs._shape = (64,64,64,3)
         logits = net_h4.outputs
         net_h4.outputs = tf.nn.tanh(net_h4.outputs)
     return net_h4, logits
