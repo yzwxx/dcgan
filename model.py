@@ -69,28 +69,35 @@ def discriminator_simplified_api(inputs, is_train=True, reuse=False):
     with tf.variable_scope("discriminator", reuse=reuse):
         tl.layers.set_name_reuse(reuse)
 
+        # input=[64,64,64,3]
         net_in = InputLayer(inputs, name='d/in')
         net_h0 = Conv2d(net_in, df_dim, (5, 5), (2, 2), act=lambda x: tl.act.lrelu(x, 0.2),
                 padding='SAME', W_init=w_init, name='d/h0/conv2d')
+        # net_h0.outputs._shape = (64,64/2,64/2,df_dim)
 
         net_h1 = Conv2d(net_h0, df_dim*2, (5, 5), (2, 2), act=None,
                 padding='SAME', W_init=w_init, name='d/h1/conv2d')
         net_h1 = BatchNormLayer(net_h1, act=lambda x: tl.act.lrelu(x, 0.2),
                 is_train=is_train, gamma_init=gamma_init, name='d/h1/batch_norm')
+        # net_h1.outputs._shape = (64,16,16,df_dim*2)
 
         net_h2 = Conv2d(net_h1, df_dim*4, (5, 5), (2, 2), act=None,
                 padding='SAME', W_init=w_init, name='d/h2/conv2d')
         net_h2 = BatchNormLayer(net_h2, act=lambda x: tl.act.lrelu(x, 0.2),
                 is_train=is_train, gamma_init=gamma_init, name='d/h2/batch_norm')
+        # net_h2.outputs._shape = (64,8,8,df_dim*4)
 
         net_h3 = Conv2d(net_h2, df_dim*8, (5, 5), (2, 2), act=None,
                 padding='SAME', W_init=w_init, name='d/h3/conv2d')
         net_h3 = BatchNormLayer(net_h3, act=lambda x: tl.act.lrelu(x, 0.2),
                 is_train=is_train, gamma_init=gamma_init, name='d/h3/batch_norm')
+        # net_h3.outputs._shape = (64,4,4,df_dim*8)
 
         net_h4 = FlattenLayer(net_h3, name='d/h4/flatten')
+        # net_h3.outputs._shape = (64,4*4*df_dim*8)
         net_h4 = DenseLayer(net_h4, n_units=1, act=tf.identity,
                 W_init = w_init, name='d/h4/lin_sigmoid')
         logits = net_h4.outputs
         net_h4.outputs = tf.nn.sigmoid(net_h4.outputs)
+        # net_h3.outputs._shape = (64,1)
     return net_h4, logits
